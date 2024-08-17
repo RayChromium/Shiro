@@ -1,21 +1,19 @@
-/* eslint-disable react/jsx-no-target-blank */
 'use client'
 
+import type { LinkModel } from '@mx-space/api-client'
+import { LinkState, LinkType, RequestError } from '@mx-space/api-client'
 import { useQuery } from '@tanstack/react-query'
-import { memo, useCallback, useRef, useState } from 'react'
 import { m } from 'framer-motion'
 import Markdown from 'markdown-to-jsx'
-import type { LinkModel } from '@mx-space/api-client'
-import type { FormContextType } from '~/components/ui/form'
 import type { FC } from 'react'
-
-import { LinkState, LinkType, RequestError } from '@mx-space/api-client'
+import { memo, useCallback, useRef, useState } from 'react'
 
 import { NotSupport } from '~/components/common/NotSupport'
 import { Avatar } from '~/components/ui/avatar'
 import { StyledButton } from '~/components/ui/button'
 import { Collapse } from '~/components/ui/collapse'
 import { BackToTopFAB } from '~/components/ui/fab'
+import type { FormContextType } from '~/components/ui/form'
 import { Form, FormInput } from '~/components/ui/form'
 import { FullPageLoading } from '~/components/ui/loading'
 import { useModalStack } from '~/components/ui/modal'
@@ -49,12 +47,14 @@ export default function Page() {
         }
 
         switch (link.state) {
-          case LinkState.Banned:
+          case LinkState.Banned: {
             banned.push(link)
             continue
-          case LinkState.Outdate:
+          }
+          case LinkState.Outdate: {
             outdated.push(link)
             continue
+          }
         }
 
         switch (link.type) {
@@ -80,19 +80,23 @@ export default function Page() {
       <header className="prose prose-p:my-2">
         <h1>Friends</h1>
         <h3>海内存知己，天涯若比邻</h3>
-        <h3>“Friendship is everything. Friendship is more than talent. It’s more than the government. It is almost equal to the family.” -- Don Vito Corleone, "The Godfather"</h3>
+        <h3>
+          “Friendship is everything. Friendship is more than talent. It’s more
+          than the government. It is almost equal to the family.” -- Don Vito
+          Corleone, "The Godfather"
+        </h3>
       </header>
 
       <main className="mt-10 flex w-full flex-col">
         {friends.length > 0 && (
           <>
-            {collections.length !== 0 && renderTitle('My friends')}
+            {collections.length > 0 && renderTitle('My friends')}
             <FriendSection data={friends} />
           </>
         )}
         {collections.length > 0 && (
           <>
-            {friends.length !== 0 && renderTitle('Collections')}
+            {friends.length > 0 && renderTitle('Collections')}
             <FavoriteSection data={collections} />
           </>
         )}
@@ -101,7 +105,9 @@ export default function Page() {
           <>
             <Collapse
               title={
-                <div className="mt-8 font-bold">The following sites are inaccessible and have lost connection.</div>
+                <div className="mt-8 font-bold">
+                  The following sites are inaccessible and have lost connection.
+                </div>
               }
             >
               <OutdateSection data={outdated} />
@@ -112,7 +118,9 @@ export default function Page() {
           <>
             <Collapse
               title={
-                <div className="mt-8 font-bold">The following sites are non-compliant and have been banned.</div>
+                <div className="mt-8 font-bold">
+                  The following sites are non-compliant and have been banned.
+                </div>
               }
             >
               <BannedSection data={banned} />
@@ -265,8 +273,13 @@ const ApplyLinkInfo: FC = () => {
   })
   const { present } = useModalStack()
   if (!canApply) {
-    return <NotSupport className="mt-20" text="
-The owner has prohibited link exchange requests." />
+    return (
+      <NotSupport
+        className="mt-20"
+        text="
+The owner has prohibited link exchange requests."
+      />
+    )
   }
   return (
     <>

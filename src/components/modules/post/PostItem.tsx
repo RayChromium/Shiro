@@ -1,8 +1,8 @@
-import { memo } from 'react'
+import type { PostModel } from '@mx-space/api-client'
 import clsx from 'clsx'
 import Link from 'next/link'
+import { memo } from 'react'
 import RemoveMarkdown from 'remove-markdown'
-import type { PostModel } from '@mx-space/api-client'
 
 import { PostPinIcon } from '~/components/modules/post/PostPinIcon'
 
@@ -32,7 +32,7 @@ export const PostItem = memo<{ data: PostModel }>(function PostItem({ data }) {
       <div className="relative mt-8 space-y-2">
         {!!data.summary && (
           <p className="mb-4 break-all rounded-md px-4 py-2 text-sm leading-relaxed text-gray-900 ring-1 ring-accent/10 dark:text-zinc-50">
-            Abstract:  {data.summary}
+            Abstract: {data.summary}
           </p>
         )}
         <div className="relative overflow-hidden text-justify">

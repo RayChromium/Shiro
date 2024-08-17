@@ -1,13 +1,12 @@
 'use client'
 
+import type { TimelineData } from '@mx-space/api-client'
+import { TimelineType } from '@mx-space/api-client'
 import { useQuery } from '@tanstack/react-query'
-import { memo, useEffect } from 'react'
 import clsx from 'clsx'
 import { m } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { TimelineData } from '@mx-space/api-client'
-
-import { TimelineType } from '@mx-space/api-client'
+import { memo, useEffect } from 'react'
 
 import { SolidBookmark } from '~/components/icons/bookmark'
 import { NormalContainer } from '~/components/layout/container/Normal'
@@ -172,7 +171,7 @@ export default function TimelinePage() {
 
   const subtitle = `There are ${
     sortedArr.flat(2).filter((i) => typeof i === 'object').length
-  } articles in total, ${!memory ? 'keep going' : 'let\'s chill and look back'}`
+  } articles in total, ${!memory ? 'keep going' : "let's chill and look back"}`
 
   return (
     <NormalContainer>

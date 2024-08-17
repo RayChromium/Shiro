@@ -1,10 +1,11 @@
-/* eslint-disable react/no-unknown-property */
 export const NotFound404: Component = ({ children }) => {
   return (
     <div className="min-h-[500px]">
       <div className="fixed inset-0 flex flex-col space-y-6 center">
         <$404SVG className="size-[400px]" />
-        <p>This planet doesn't have any knowledge yet. Go explore other places!</p>
+        <p>
+          This planet doesn't have any knowledge yet. Go explore other places!
+        </p>
         {children}
       </div>
     </div>
