@@ -42,7 +42,7 @@ export const NoteFooterNavigation = () => {
                   scroll={false}
                 >
                   <i className="icon-[mingcute--arrow-left-line]" />
-                  <span>前一篇</span>
+                  <span>Previous note</span>
                 </Link>
               )}
 
@@ -54,7 +54,7 @@ export const NoteFooterNavigation = () => {
                   scroll={false}
                   className="hover:text-accent"
                 >
-                  <span>后一篇</span>
+                  <span>Next note</span>
                   <i className="icon-[mingcute--arrow-right-line]" />
                 </Link>
               )}
@@ -73,7 +73,7 @@ export const NoteFooterNavigation = () => {
                 )
               }}
             >
-              <span>时间线</span>
+              <span>Timeline</span>
               <MdiClockTimeThreeOutline />
             </div>
           </section>
