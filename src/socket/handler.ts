@@ -10,15 +10,10 @@ import type { BusinessEvents } from '@mx-space/webhook'
 import type { InfiniteData } from '@tanstack/react-query'
 import { produce } from 'immer'
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'
-import React from 'react'
+import * as React from 'react'
 
 import { setOnlineCount } from '~/atoms'
-import {
-  deleteActivityPresence,
-  setActivityMediaInfo,
-  setActivityPresence,
-  setActivityProcessInfo,
-} from '~/atoms/activity'
+import { setActivityMediaInfo, setActivityProcessInfo } from '~/atoms/activity'
 import {
   FaSolidFeatherAlt,
   IcTwotoneSignpost,
@@ -30,7 +25,6 @@ import { TrackerAction } from '~/constants/tracker'
 import { isDev } from '~/lib/env'
 import { routeBuilder, Routes } from '~/lib/route-builder'
 import { toast } from '~/lib/toast'
-import type { ActivityPresence } from '~/models/activity'
 import {
   getCurrentNoteData,
   setCurrentNoteData,
@@ -44,7 +38,6 @@ import {
   setGlobalCurrentPostData,
 } from '~/providers/post/CurrentPostDataProvider'
 import { queryClient } from '~/providers/root/react-query-provider'
-import { queries } from '~/queries/definition'
 import { buildCommentsQueryKey } from '~/queries/keys'
 import { EventTypes } from '~/types/events'
 
@@ -88,7 +81,7 @@ export const eventHandler = (
         Reflect.deleteProperty(nextPost, 'category')
         Object.assign(draft, nextPost)
       })
-      toast('Article updated')
+      toast.info('Article updated')
       trackerRealtimeEvent()
 
       if (currentData.text !== post.text) {
@@ -128,7 +121,7 @@ export const eventHandler = (
       setCurrentNoteData((draft) => {
         Object.assign(draft.data, note)
       })
-      toast('Note updated')
+      toast.info('Note updated')
       trackerRealtimeEvent()
 
       if (currentData.text !== note.text) {
@@ -162,7 +155,7 @@ export const eventHandler = (
         setCurrentPageData((draft) => {
           Object.assign(draft, data)
         })
-        toast('Page updated')
+        toast.info('Page updated')
         trackerRealtimeEvent()
       }
       break
@@ -235,24 +228,6 @@ export const eventHandler = (
       break
     }
 
-    case EventTypes.ACTIVITY_UPDATE_PRESENCE: {
-      const payload = data as ActivityPresence
-      const { queryKey } = queries.activity.presence(payload.roomName)
-      const queryState = queryClient.getQueryState(queryKey)
-      queryClient.cancelQueries({
-        queryKey,
-      })
-
-      setActivityPresence(data)
-      if (!queryState?.data) {
-        queryClient.invalidateQueries({
-          queryKey,
-        })
-      }
-
-      break
-    }
-
     case EventTypes.COMMENT_CREATE: {
       const payload = data as {
         ref: string
@@ -279,18 +254,6 @@ export const eventHandler = (
       break
     }
 
-    case EventTypes.ACTIVITY_LEAVE_PRESENCE: {
-      const payload = data as {
-        identity: string
-        roomName: string
-      }
-
-      queryClient.cancelQueries({
-        queryKey: queries.activity.presence(payload.roomName).queryKey,
-      })
-      deleteActivityPresence(payload.identity)
-      break
-    }
     case EventTypes.ARTICLE_READ_COUNT_UPDATE: {
       const { id, count, type } = data
       if (!count) {

@@ -1,7 +1,6 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { sleep } from 'openai/core'
 
 import { useOnlineCount } from '~/atoms'
 import { useSocketIsConnect } from '~/atoms/hooks'
@@ -20,9 +19,7 @@ const Help = () => {
     <FloatPopover
       mobileAsSheet
       as="span"
-      triggerElement={
-        <i className="icon-[mingcute--question-line] cursor-help" />
-      }
+      triggerElement={<i className="i-mingcute-question-line cursor-help" />}
       type="tooltip"
       asChild
       sheet={{
@@ -31,7 +28,7 @@ const Help = () => {
     >
       <div className="space-y-2 leading-relaxed">
         <p className="flex items-center space-x-1 opacity-80">
-          <i className="icon-[mingcute--question-line]" />
+          <i className="i-mingcute-question-line" />
           <span className="font-medium">How is this implemented?</span>
         </p>
         <p>
@@ -121,7 +118,7 @@ const RoomsInfo = () => {
     refetchOnMount: true,
     staleTime: 1000 * 10,
     queryFn: async () => {
-      await sleep(1000)
+      await new Promise((resolve) => setTimeout(resolve, 1000))
       const res = await apiClient.activity.getRoomsInfo()
       const data = res.$serialized
       const result = [] as {
@@ -164,7 +161,7 @@ const RoomsInfo = () => {
 
   if (!data)
     return (
-      <div className="flex size-6 center">
+      <div className="center flex size-6">
         <div className="loading loading-spinner" />
       </div>
     )
@@ -181,8 +178,7 @@ const RoomsInfo = () => {
             </PeekLink>
             {!!room.count && (
               <span className="ml-5 inline-flex items-center text-sm text-gray-500">
-                <i className="icon-[mingcute--user-visible-line]" />{' '}
-                {room.count}
+                <i className="i-mingcute-user-visible-line" /> {room.count}
               </span>
             )}
           </li>

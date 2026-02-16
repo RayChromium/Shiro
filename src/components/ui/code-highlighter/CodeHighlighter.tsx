@@ -1,4 +1,4 @@
-import type React from 'react'
+import type * as React from 'react'
 import type { FC } from 'react'
 import {
   use,
@@ -29,10 +29,11 @@ declare global {
 interface Props {
   lang: string | undefined
   content: string
+  startLineNumber?: number
 }
 
 export const HighLighterPrismCdn: FC<Props> = (props) => {
-  const { lang: language, content: value } = props
+  const { lang: language, content: value, startLineNumber = 1 } = props
 
   const handleCopy = useCallback(() => {
     navigator.clipboard.writeText(value)
@@ -47,7 +48,10 @@ export const HighLighterPrismCdn: FC<Props> = (props) => {
         {language?.toUpperCase()}
       </span>
 
-      <pre className="line-numbers !bg-transparent" data-start="1">
+      <pre
+        className="line-numbers !bg-transparent"
+        data-start={startLineNumber}
+      >
         <code
           className={`language-${language ?? 'markup'} !bg-transparent`}
           ref={ref}
@@ -164,9 +168,7 @@ export const ShikiFallback: FC<ShikiProps> = (props) => {
       return bundledLanguagesKeysSet.has(lang)
     }, [lang]),
   )
-
-  if (!shikiSupported) {
-    return <HighLighterPrismCdn {...props} />
-  }
-  return <ShikiHighLighter {...props} />
+  return (
+    <ShikiHighLighter {...props} lang={shikiSupported ? props.lang : 'text'} />
+  )
 }

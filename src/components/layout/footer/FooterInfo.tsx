@@ -5,7 +5,7 @@ import { fetchAggregationData } from '~/app/(app)/api'
 import { IonIosArrowDown } from '~/components/icons/arrow'
 import { SubscribeTextButton } from '~/components/modules/subscribe/SubscribeTextButton'
 import { FloatPopover } from '~/components/ui/float-popover'
-import { MLink } from '~/components/ui/link'
+import { MarkdownLink } from '~/components/ui/link'
 import { clsxm } from '~/lib/helper'
 import { getQueryClient } from '~/lib/query-client.server'
 import { queries } from '~/queries/definition'
@@ -135,9 +135,9 @@ const PoweredBy: Component = ({ className }) => {
           Shiro
         </StyledLink>{' '}
         {process.env.COMMIT_HASH && process.env.COMMIT_URL && (
-          <MLink popper={false} href={process.env.COMMIT_URL}>
+          <MarkdownLink popper={false} href={process.env.COMMIT_URL}>
             version Hash: {process.env.COMMIT_HASH.slice(0, 8)}
-          </MLink>
+          </MarkdownLink>
         )}
       </FloatPopover>
       .
@@ -178,7 +178,7 @@ const FooterBottom = async () => {
 
   return (
     <div className="mt-12 space-y-3 text-center md:mt-6 md:text-left">
-      <p>
+      <div>
         <span>© {date.replace('{{now}}', currentYear)} </span>
         <a href="/">
           <OwnerName />
@@ -202,7 +202,7 @@ const FooterBottom = async () => {
         <span className="mt-3 block md:mt-0 md:inline">
           "Keep busy living, or keep busy dying."
         </span>
-      </p>
+      </div>
       <div>
         <PoweredBy className="my-3 block md:my-0 md:inline" />
         {icp && (

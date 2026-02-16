@@ -24,7 +24,7 @@ export const NoteHideIfSecret: Component = ({ children }) => {
     const MAX_TIMEOUT = (2 ^ 31) - 1
     if (isSecret && timeout && timeout < MAX_TIMEOUT) {
       timer = setTimeout(() => {
-        toast('Refresh to read unlocked articles', 'info', { autoClose: false })
+        toast.info('Refresh to read unlocked articles', { autoClose: false })
       }, timeout)
     }
 

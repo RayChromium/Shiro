@@ -3,11 +3,6 @@ import type { Metadata } from 'next'
 
 import { AckRead } from '~/components/common/AckRead'
 import { ClientOnly } from '~/components/common/ClientOnly'
-import {
-  buildRoomName,
-  Presence,
-  RoomProvider,
-} from '~/components/modules/activity'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
 import {
   NoteActionAside,
@@ -15,7 +10,6 @@ import {
   NoteBottomTopic,
   NoteFooterNavigationBarForMobile,
   NoteMetaBar,
-  NoteMetaReadingCount,
   NotePasswordForm,
 } from '~/components/modules/note'
 import {
@@ -29,7 +23,6 @@ import { BanCopyWrapper } from '~/components/modules/shared/BanCopyWrapper'
 import { ReadIndicatorForMobile } from '~/components/modules/shared/ReadIndicator'
 import { SummarySwitcher } from '~/components/modules/shared/SummarySwitcher'
 import { TocFAB } from '~/components/modules/toc/TocFAB'
-import { XLogInfoForNote } from '~/components/modules/xlog'
 import { BottomToUpSoftScaleTransitionView } from '~/components/ui/transition'
 import { OnlyMobile } from '~/components/ui/viewport/OnlyMobile'
 import { getOgUrl } from '~/lib/helper.server'
@@ -74,7 +67,6 @@ function PageInner({ data }: { data: NoteModel }) {
 
           <ClientOnly>
             <NoteMetaBar />
-            <NoteMetaReadingCount />
           </ClientOnly>
         </span>
 
@@ -87,7 +79,6 @@ function PageInner({ data }: { data: NoteModel }) {
       <NoteHideIfSecret>
         <SummarySwitcher data={data} />
         <WrappedElementProvider eoaDetect>
-          <Presence />
           <ReadIndicatorForMobile />
           <NoteMarkdownImageRecordProvider>
             <BanCopyWrapper>
@@ -114,7 +105,6 @@ function PageInner({ data }: { data: NoteModel }) {
         <div className="mt-8" data-hide-print />
         <NoteBottomBarAction />
         <NoteBottomTopic />
-        <XLogInfoForNote />
         <NoteFooterNavigationBarForMobile />
       </ClientOnly>
     </>
@@ -130,17 +120,18 @@ type NoteDetailPageParams = {
 export const generateMetadata = async ({
   params,
 }: {
-  params: NoteDetailPageParams
+  params: Promise<NoteDetailPageParams>
 }): Promise<Metadata> => {
   try {
-    const res = await getData(params)
+    const resolvedParams = await params
+    const res = await getData(resolvedParams)
 
     const { data } = res
     const { title, text } = data
     const description = getSummaryFromMd(text ?? '')
 
-    const ogUrl = getOgUrl('note', {
-      nid: params.id,
+    const ogUrl = await getOgUrl('note', {
+      nid: resolvedParams.id,
     })
 
     return {
@@ -185,19 +176,18 @@ export default definePrerenderPage<NoteDetailPageParams>()({
         <CurrentNoteDataProvider data={data} />
 
         <SyncNoteDataAfterLoggedIn />
-        <RoomProvider roomName={buildRoomName(data.data.id)}>
-          <Transition className="min-w-0" lcpOptimization>
-            <Paper key={nid} as={NoteMainContainer}>
-              <PageInner data={data.data} />
-            </Paper>
-            <BottomToUpSoftScaleTransitionView delay={500}>
-              <CommentAreaRootLazy
-                refId={data.data.id}
-                allowComment={data.data.allowComment}
-              />
-            </BottomToUpSoftScaleTransitionView>
-          </Transition>
-        </RoomProvider>
+
+        <Transition className="min-w-0" lcpOptimization>
+          <Paper key={nid} as={NoteMainContainer}>
+            <PageInner data={data.data} />
+          </Paper>
+          <BottomToUpSoftScaleTransitionView delay={500}>
+            <CommentAreaRootLazy
+              refId={data.data.id}
+              allowComment={data.data.allowComment}
+            />
+          </BottomToUpSoftScaleTransitionView>
+        </Transition>
 
         <NoteFontSettingFab />
 

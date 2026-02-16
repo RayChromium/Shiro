@@ -41,7 +41,7 @@ export const NoteFooterNavigation = () => {
                   className="hover:text-accent"
                   scroll={false}
                 >
-                  <i className="icon-[mingcute--arrow-left-line]" />
+                  <i className="i-mingcute-arrow-left-line" />
                   <span>Previous note</span>
                 </Link>
               )}
@@ -55,7 +55,7 @@ export const NoteFooterNavigation = () => {
                   className="hover:text-accent"
                 >
                   <span>Next note</span>
-                  <i className="icon-[mingcute--arrow-right-line]" />
+                  <i className="i-mingcute-arrow-right-line" />
                 </Link>
               )}
             </div>

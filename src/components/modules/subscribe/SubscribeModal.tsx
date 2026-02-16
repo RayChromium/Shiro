@@ -1,7 +1,6 @@
 'use client'
 
 import type { SubscribeTypeToBitMap } from '@mx-space/api-client'
-import type React from 'react'
 import type { FC } from 'react'
 import { useEffect, useReducer } from 'react'
 
@@ -111,7 +110,7 @@ export const SubscribeModal: FC<SubscribeModalProps> = ({
 
   return (
     <form onSubmit={handleSubList} className="flex flex-col gap-5">
-      <p className="text-gray-1 text-sm">
+      <p className="text-sm opacity-90">
         Feel free to subscribe「{title}
         」, I would send new contents to your e-mail.
       </p>
@@ -157,8 +156,8 @@ export const SubscribeModal: FC<SubscribeModalProps> = ({
           ))}
       </div>
 
-      <p className="text-gray-1 -mt-2 text-sm">
-        Or you can subscribe to the RSS stram of 「{title}」by clicking{' '}
+      <p className="-mt-2 text-sm opacity-90">
+        Or you can subscribe to the RSS stream of 「{title}」by clicking{' '}
         <a href="/feed" className="text-green" target="_blank" rel="noreferrer">
           /feed
         </a>{' '}

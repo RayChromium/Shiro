@@ -7,8 +7,6 @@ import { clsxm } from '~/lib/helper'
 
 import type { AiSummaryProps } from '../ai/Summary'
 import { AISummary } from '../ai/Summary'
-import { XLogSummary } from '../xlog'
-import { getCidForBaseModel } from '../xlog/utils'
 
 export const SummarySwitcher: FC<
   AiSummaryProps & {
@@ -17,7 +15,6 @@ export const SummarySwitcher: FC<
 > = memo((props) => {
   const { enabled, providers } = appStaticConfig.ai.summary
   const { data, summary } = props
-  const cid = getCidForBaseModel(data)
 
   const finalSummary = 'summary' in data ? data.summary : summary
   if (finalSummary && finalSummary.trim().length > 0)
@@ -30,10 +27,6 @@ export const SummarySwitcher: FC<
   for (const provider of providers) {
     if (comp) break
     switch (provider) {
-      case 'xlog': {
-        if (cid) comp = <XLogSummary cid={cid} />
-        break
-      }
       case 'openai': {
         if (!process.env.OPENAI_API_KEY) break
         if (data) comp = <AISummary data={data} />
@@ -63,7 +56,7 @@ const ManualSummary: Component<{
       )}
     >
       <div className="flex items-center">
-        <i className="icon-[mingcute--sparkles-line] mr-2 text-lg" />
+        <i className="i-mingcute-sparkles-line mr-2 text-lg" />
         摘要
       </div>
       <div className="!m-0 text-sm leading-loose text-base-content/85">

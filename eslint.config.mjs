@@ -8,7 +8,7 @@ export default defineConfig(
     ignores: [],
     preferESM: false,
     react: 'next',
-    tailwindCSS:true
+    tailwindCSS: true,
   },
   {
     settings: {
@@ -17,6 +17,7 @@ export default defineConfig(
       },
     },
     rules: {
+      'unicorn/expiring-todo-comments': 'off',
       'package-json/valid-package-def': 'off',
       '@eslint-react/no-missing-key': 'warn',
       'no-restricted-syntax': 'off',
@@ -49,6 +50,7 @@ export default defineConfig(
       'regexp/no-unused-capturing-group': 1,
       'unicorn/no-anonymous-default-export': 0,
       'unicorn/no-magic-array-flat-depth': 1,
+
       'react-refresh/only-export-components': 0,
     },
   },
@@ -58,6 +60,8 @@ export default defineConfig(
     rules: {
       'package-json/valid-package-def': 0,
       'package-json/valid-name': 0,
+      'package-json/valid-package-definition': 0,
+      'package-json/require-type': 0,
     },
   },
 )

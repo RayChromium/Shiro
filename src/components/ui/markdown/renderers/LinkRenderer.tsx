@@ -1,10 +1,15 @@
 import dynamic from 'next/dynamic'
+import type * as React from 'react'
 import type { FC, PropsWithChildren, ReactNode } from 'react'
-import React, { useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 
+import { ClientOnly } from '~/components/common/ClientOnly'
 import { GitHubBrandIcon } from '~/components/icons/platform/GitHubBrandIcon'
+import { BlockLoading } from '~/components/modules/shared/BlockLoading'
 import {
   getTweetId,
+  isArxivUrl,
+  isBangumiUrl,
   isBilibiliVideoUrl,
   isCodesandboxUrl,
   isGistUrl,
@@ -13,6 +18,9 @@ import {
   isGithubPrUrl,
   isGithubRepoUrl,
   isGithubUrl,
+  isLeetCodeUrl,
+  isNeteaseMusicSongUrl,
+  isQQMusicSongUrl,
   isSelfArticleUrl,
   isTMDBUrl,
   isTweetUrl,
@@ -25,7 +33,7 @@ import {
 import { useFeatureEnabled } from '~/providers/root/app-feature-provider'
 
 import { EmbedGithubFile } from '../../../modules/shared/EmbedGithubFile'
-import { MLink } from '../../link/MLink'
+import { MarkdownLink } from '../../link/MarkdownLink'
 import { LinkCard, LinkCardSource } from '../../link-card'
 
 const Tweet = dynamic(() => import('~/components/modules/shared/Tweet'), {
@@ -38,7 +46,13 @@ const Tweet = dynamic(() => import('~/components/modules/shared/Tweet'), {
 export const BlockLinkRenderer = ({
   href,
   children,
-}: PropsWithChildren<{ href: string }>) => {
+  fallback,
+  accessory,
+}: PropsWithChildren<{
+  href: string
+  fallback?: ReactNode
+  accessory?: ReactNode
+}>) => {
   const url = useMemo(() => {
     try {
       return new URL(href)
@@ -48,104 +62,185 @@ export const BlockLinkRenderer = ({
   }, [href])
 
   const fallbackElement = useMemo(
-    () => (
-      <p>
-        <MLink href={href}>{children ?? <span>{href}</span>}</MLink>
-      </p>
-    ),
-    [children, href],
+    () =>
+      fallback ?? (
+        <p>
+          <MarkdownLink href={href}>
+            {children ?? <span>{href}</span>}
+          </MarkdownLink>
+        </p>
+      ),
+    [children, fallback, href],
   )
 
   const tmdbEnabled = useFeatureEnabled('tmdb')
+  const Inner = useMemo(() => {
+    if (!url) return null
+    switch (true) {
+      case isGithubUrl(url): {
+        return (
+          <GithubUrlRenderL
+            url={url}
+            href={href}
+            fallbackElement={fallbackElement}
+          />
+        )
+      }
+      case isArxivUrl(url): {
+        return (
+          <LinkCard
+            fallbackUrl={url.toString()}
+            source={LinkCardSource.Arxiv}
+            id={url.pathname.slice(5).toLowerCase()}
+          />
+        )
+      }
+
+      case isTweetUrl(url): {
+        const id = getTweetId(url)
+
+        return (
+          <Suspense>
+            <Tweet id={id} />
+          </Suspense>
+        )
+      }
+
+      case isYoutubeUrl(url): {
+        const id = url.searchParams.get('v')!
+        return (
+          <FixedRatioContainer>
+            <iframe
+              src={`https://www.youtube.com/embed/${id}`}
+              className="absolute inset-0 size-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="YouTube video player"
+            />
+          </FixedRatioContainer>
+        )
+      }
+
+      case isCodesandboxUrl(url): {
+        // https://codesandbox.io/s/framer-motion-layoutroot-prop-forked-p39g96
+        // to
+        // https://codesandbox.io/embed/framer-motion-layoutroot-prop-forked-p39g96?fontsize=14&hidenavigation=1&theme=dark
+        return (
+          <FixedRatioContainer>
+            <iframe
+              className="absolute inset-0 size-full rounded-md border-0"
+              src={`https://codesandbox.io/embed/${url.pathname.slice(
+                2,
+              )}?fontsize=14&hidenavigation=1&theme=dark${url.search}`}
+            />
+          </FixedRatioContainer>
+        )
+      }
+      case isSelfArticleUrl(url): {
+        return (
+          <LinkCard
+            fallbackUrl={url.toString()}
+            source={LinkCardSource.Self}
+            id={url.pathname.slice(1)}
+          />
+        )
+      }
+
+      case isTMDBUrl(url): {
+        if (tmdbEnabled)
+          return (
+            <LinkCard
+              fallbackUrl={url.toString()}
+              source={LinkCardSource.TMDB}
+              id={url.pathname.slice(1)}
+            />
+          )
+
+        return fallbackElement
+      }
+
+      case isBangumiUrl(url): {
+        return (
+          <LinkCard
+            fallbackUrl={url.toString()}
+            source={LinkCardSource.Bangumi}
+            id={url.pathname.slice(1)}
+          />
+        )
+      }
+
+      case isLeetCodeUrl(url): {
+        return (
+          <LinkCard
+            fallbackUrl={url.toString()}
+            source={LinkCardSource.LEETCODE}
+            id={url.pathname.split('/')[2]}
+          />
+        )
+      }
+
+      case isBilibiliVideoUrl(url): {
+        const { id } = parseBilibiliVideoUrl(url)
+
+        return (
+          <div className="w-screen max-w-full">
+            <FixedRatioContainer>
+              <ClientOnly
+                fallback={
+                  <BlockLoading className="absolute inset-0 size-full rounded-md">
+                    哔哩哔哩视频加载中...
+                  </BlockLoading>
+                }
+              >
+                <iframe
+                  src={`//player.bilibili.com/player.html?bvid=${id}&autoplay=0`}
+                  scrolling="no"
+                  frameBorder="no"
+                  className="absolute inset-0 size-full rounded-md border-0"
+                  allowFullScreen
+                />
+              </ClientOnly>
+            </FixedRatioContainer>
+          </div>
+        )
+      }
+
+      case isNeteaseMusicSongUrl(url): {
+        const urlString = url.toString().replaceAll('/#/', '/')
+        const _url = new URL(urlString)
+        const id = _url.searchParams.get('id') ?? ''
+        return (
+          <LinkCard
+            fallbackUrl={url.toString()}
+            source={LinkCardSource.NeteaseMusicSong}
+            id={id}
+          />
+        )
+      }
+
+      case isQQMusicSongUrl(url): {
+        return (
+          <LinkCard
+            fallbackUrl={url.toString()}
+            source={LinkCardSource.QQMusicSong}
+            id={url.pathname.split('/')[4]}
+          />
+        )
+      }
+    }
+  }, [fallbackElement, href, tmdbEnabled, url])
 
   if (!url) {
     return fallbackElement
   }
 
-  switch (true) {
-    case isGithubUrl(url): {
-      return (
-        <GithubUrlRenderL
-          url={url}
-          href={href}
-          fallbackElement={fallbackElement}
-        />
-      )
-    }
-    case isTweetUrl(url): {
-      const id = getTweetId(url)
-
-      return <Tweet id={id} />
-    }
-
-    case isYoutubeUrl(url): {
-      const id = url.searchParams.get('v')!
-      return (
-        <FixedRatioContainer>
-          <iframe
-            src={`https://www.youtube.com/embed/${id}`}
-            className="absolute inset-0 size-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title="YouTube video player"
-          />
-        </FixedRatioContainer>
-      )
-    }
-
-    case isCodesandboxUrl(url): {
-      // https://codesandbox.io/s/framer-motion-layoutroot-prop-forked-p39g96
-      // to
-      // https://codesandbox.io/embed/framer-motion-layoutroot-prop-forked-p39g96?fontsize=14&hidenavigation=1&theme=dark
-      return (
-        <FixedRatioContainer>
-          <iframe
-            className="absolute inset-0 size-full rounded-md border-0"
-            src={`https://codesandbox.io/embed/${url.pathname.slice(
-              2,
-            )}?fontsize=14&hidenavigation=1&theme=dark${url.search}`}
-          />
-        </FixedRatioContainer>
-      )
-    }
-    case isSelfArticleUrl(url): {
-      return (
-        <LinkCard
-          fallbackUrl={url.toString()}
-          source={LinkCardSource.Self}
-          id={url.pathname.slice(1)}
-        />
-      )
-    }
-    case isTMDBUrl(url): {
-      if (tmdbEnabled)
-        return (
-          <LinkCard
-            fallbackUrl={url.toString()}
-            source={LinkCardSource.TMDB}
-            id={url.pathname.slice(1)}
-          />
-        )
-
-      return fallbackElement
-    }
-    case isBilibiliVideoUrl(url): {
-      const { id } = parseBilibiliVideoUrl(url)
-
-      return (
-        <div className="w-[640px] max-w-full">
-          <FixedRatioContainer>
-            <iframe
-              src={`//player.bilibili.com/player.html?bvid=${id}`}
-              scrolling="no"
-              frameBorder="no"
-              className="absolute inset-0 size-full rounded-md border-0"
-              allowFullScreen
-            />
-          </FixedRatioContainer>
-        </div>
-      )
-    }
+  if (Inner) {
+    return (
+      <>
+        {Inner}
+        {accessory}
+      </>
+    )
   }
   return fallbackElement
 }
@@ -156,22 +251,20 @@ const FixedRatioContainer = ({
 }: {
   ratio?: number
   children: React.ReactNode
-}) => {
-  return (
-    <div className="my-2">
-      <div className="flex justify-center px-4">
-        <div
-          className="relative h-0 w-full"
-          style={{
-            paddingBottom: `${ratio}%`,
-          }}
-        >
-          {children}
-        </div>
+}) => (
+  <div className="my-2">
+    <div className="flex justify-center px-4">
+      <div
+        className="relative h-0 w-full"
+        style={{
+          paddingBottom: `${ratio}%`,
+        }}
+      >
+        {children}
       </div>
     </div>
-  )
-}
+  </div>
+)
 
 const GithubUrlRenderL: FC<{
   url: URL
@@ -195,7 +288,7 @@ const GithubUrlRenderL: FC<{
           />
 
           <a
-            className="mt-2 flex space-x-2 center"
+            className="center mt-2 flex space-x-2"
             href={href}
             target="_blank"
             rel="noreferrer"
@@ -222,7 +315,7 @@ const GithubUrlRenderL: FC<{
       return (
         <>
           <p>
-            <MLink href={href}>{href}</MLink>
+            <MarkdownLink href={href}>{href}</MarkdownLink>
           </p>
           <LinkCard
             fallbackUrl={url.toString()}
@@ -237,16 +330,31 @@ const GithubUrlRenderL: FC<{
       const splitString = afterTypeString.split('/')
       const ref = splitString[0]
       const path = ref ? splitString.slice(1).join('/') : afterTypeString
+      const matchResult = url.hash.match(/L\d+/g)
+      let startLineNumber = 0
+      let endLineNumber
+      if (!matchResult) {
+        startLineNumber = 0
+        endLineNumber = undefined
+      } else if (matchResult.length === 1) {
+        startLineNumber = Number.parseInt(matchResult[0].slice(1)) - 1
+        endLineNumber = startLineNumber + 1
+      } else {
+        startLineNumber = Number.parseInt(matchResult[0].slice(1)) - 1
+        endLineNumber = Number.parseInt(matchResult[1].slice(1))
+      }
       return (
         <div className="flex w-full flex-col items-center">
           <EmbedGithubFile
             owner={owner}
             repo={repo}
             path={path}
+            startLineNumber={startLineNumber}
+            endLineNumber={endLineNumber}
             refType={ref}
           />
           <div className="mt-4">
-            <MLink href={href}>{href}</MLink>
+            <MarkdownLink href={href}>{href}</MarkdownLink>
           </div>
         </div>
       )

@@ -71,7 +71,7 @@ export const headerMenuConfig: IHeaderMenu[] = [
         title: 'Topics',
         path: '/notes/topics',
         icon: h('i', {
-          className: 'icon-[mingcute--align-bottom-fill] flex center',
+          className: 'i-mingcute-align-bottom-fill flex center',
         }),
       },
     ],

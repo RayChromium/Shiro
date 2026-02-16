@@ -1,4 +1,4 @@
-import { getViewport } from '~/atoms/hooks'
+import { getViewport } from '~/atoms/hooks/viewport'
 import { usePageScrollLocationSelector } from '~/providers/root/page-scroll-info-provider'
 import {
   useWrappedElementPosition,
@@ -11,8 +11,7 @@ export const useReadPercent = () => {
   const readPercent = usePageScrollLocationSelector(
     (scrollTop) => {
       const winHeight = getViewport().h
-      const deltaHeight =
-        scrollTop >= winHeight ? winHeight : (scrollTop / winHeight) * winHeight
+      const deltaHeight = Math.min(scrollTop, winHeight)
 
       return (
         Math.floor(

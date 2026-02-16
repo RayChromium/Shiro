@@ -1,16 +1,10 @@
-import './dashboard.css'
-
 import type { Viewport } from 'next'
 import { PublicEnvScript } from 'next-runtime-env'
 import type { PropsWithChildren } from 'react'
-import { ToastContainer } from 'react-toastify'
 
 import { ClientOnly } from '~/components/common/ClientOnly'
 import { HydrationEndDetector } from '~/components/common/HydrationEndDetector'
-import { LayoutHeader } from '~/components/layout/dashboard/Header'
-import { ComposedKBarProvider } from '~/components/layout/dashboard/Kbar'
 import { MainLayout } from '~/components/modules/dashboard/layouts'
-import { AccentColorStyleInjector } from '~/components/modules/shared/AccentColorStyleInjector'
 import { FABContainer } from '~/components/ui/fab'
 import { sansFont, serifFont } from '~/lib/fonts'
 import { getQueryClient } from '~/lib/query-client.server'
@@ -19,6 +13,7 @@ import { AggregationProvider } from '~/providers/root/aggregation-data-provider'
 import { aggregation } from '~/queries/definition/aggregation'
 
 export const dynamic = 'force-dynamic'
+
 export function generateViewport(): Viewport {
   return {
     themeColor: [
@@ -46,7 +41,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
       <head>
         <title>Shiro · Light Dashboard | Powered by Mix Space</title>
         <HydrationEndDetector />
-        <AccentColorStyleInjector />
+        {/* <AccentColorStyleInjector /> */}
 
         <link
           rel="shortcut icon"
@@ -63,6 +58,7 @@ export default async function RootLayout({ children }: PropsWithChildren) {
         <PublicEnvScript />
       </head>
       <body
+        suppressHydrationWarning
         id="dashboard"
         className={`${sansFont.variable} ${serifFont.variable} m-0 h-full bg-gray-50 p-0 font-sans dark:bg-black`}
       >
@@ -73,14 +69,11 @@ export default async function RootLayout({ children }: PropsWithChildren) {
           />
 
           <ClientOnly>
-            <LayoutHeader />
-            <ComposedKBarProvider>
-              <MainLayout>{children}</MainLayout>
-            </ComposedKBarProvider>
+            <MainLayout>{children}</MainLayout>
+
             <FABContainer />
           </ClientOnly>
         </DashboardAppProviders>
-        <ToastContainer />
       </body>
     </html>
   )

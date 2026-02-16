@@ -1,11 +1,7 @@
 import type { Metadata } from 'next'
-import React, { cache } from 'react'
+import * as React from 'react'
+import { cache } from 'react'
 
-import {
-  buildRoomName,
-  Presence,
-  RoomProvider,
-} from '~/components/modules/activity'
 import { CommentAreaRootLazy } from '~/components/modules/comment'
 import { TocFAB } from '~/components/modules/toc/TocFAB'
 import {
@@ -32,7 +28,7 @@ import {
 
 export const dynamic = 'force-dynamic'
 const getData = cache(async (params: PageParams) => {
-  attachServerFetch()
+  await attachServerFetch()
   const data = await apiClient.page
     .getBySlug(params.slug)
     .catch(requestErrorHandler)
@@ -42,16 +38,17 @@ const getData = cache(async (params: PageParams) => {
 export const generateMetadata = async ({
   params,
 }: {
-  params: PageParams
+  params: Promise<PageParams>
 }): Promise<Metadata> => {
-  const { slug } = params
+  const resolvedParams = await params
+  const { slug } = resolvedParams
   try {
-    const data = await getData(params)
+    const data = await getData(resolvedParams)
 
     const { title, text } = data
     const description = getSummaryFromMd(text ?? '')
 
-    const ogImage = getOgUrl('page', {
+    const ogImage = await getOgUrl('page', {
       slug,
     })
 
@@ -94,32 +91,28 @@ export default definePrerenderPage<PageParams>()({
             <div className="relative w-full min-w-0">
               <HeaderMetaInfoSetting />
 
-              <RoomProvider roomName={buildRoomName(data.id)}>
-                <WrappedElementProvider eoaDetect>
-                  <article className="prose">
-                    <header className="mb-8">
-                      <BottomToUpSoftScaleTransitionView
-                        lcpOptimization
-                        delay={0}
-                      >
-                        <PageTitle />
-                      </BottomToUpSoftScaleTransitionView>
+              <WrappedElementProvider eoaDetect>
+                <article className="prose">
+                  <header className="mb-8">
+                    <BottomToUpSoftScaleTransitionView
+                      lcpOptimization
+                      delay={0}
+                    >
+                      <PageTitle />
+                    </BottomToUpSoftScaleTransitionView>
 
-                      <BottomToUpSoftScaleTransitionView
-                        lcpOptimization
-                        delay={200}
-                      >
-                        <PageSubTitle />
-                      </BottomToUpSoftScaleTransitionView>
-                    </header>
-                    <BottomToUpTransitionView lcpOptimization delay={600}>
-                      {children}
-                    </BottomToUpTransitionView>
-
-                    <Presence />
-                  </article>
-                </WrappedElementProvider>
-              </RoomProvider>
+                    <BottomToUpSoftScaleTransitionView
+                      lcpOptimization
+                      delay={200}
+                    >
+                      <PageSubTitle />
+                    </BottomToUpSoftScaleTransitionView>
+                  </header>
+                  <BottomToUpTransitionView lcpOptimization delay={600}>
+                    {children}
+                  </BottomToUpTransitionView>
+                </article>
+              </WrappedElementProvider>
 
               <BottomToUpSoftScaleTransitionView delay={1000}>
                 <PagePaginator />

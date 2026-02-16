@@ -1,10 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useIsomorphicLayoutEffect } from 'foxact/use-isomorphic-layout-effect'
+import type { MarkdownToJSX } from 'markdown-to-jsx'
+import { RuleType } from 'markdown-to-jsx'
 import { ThemeProvider } from 'next-themes'
 import type { ReactNode } from 'react'
-import React, { lazy, Suspense, useMemo, useState } from 'react'
+import * as React from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import ReactDOM from 'react-dom'
-import { ToastContainer } from 'react-toastify'
 import type { DocumentComponent } from 'storybook/typings'
 
 import { BlockLoading } from '~/components/modules/shared/BlockLoading'
@@ -13,6 +15,7 @@ import { ExcalidrawLoading } from '~/components/ui/excalidraw/ExcalidrawLoading'
 import { ReactComponentRender } from '~/components/ui/react-component-render/ComponentRender'
 
 import { HighLighterPrismCdn } from '../code-highlighter'
+import { Toaster } from '../toast'
 // @ts-expect-error
 import customize from './customize.md?raw'
 import { Markdown } from './Markdown'
@@ -71,36 +74,34 @@ declare const window: any
 window.React = React
 window.ReactDOM = ReactDOM
 
-export const MarkdownCustomize: DocumentComponent = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <main className="relative m-auto mt-6 max-w-[800px]">
-          <Markdown
-            value={customize}
-            extendsRules={{
-              codeBlock: {
-                react(node, output, state) {
-                  return (
-                    <CodeBlockRender
-                      key={state?.key}
-                      content={node.content}
-                      lang={node.lang}
-                    />
-                  )
-                },
+export const MarkdownCustomize: DocumentComponent = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <main className="relative m-auto mt-6 max-w-[800px]">
+        <Markdown
+          value={customize}
+          overrideRules={{
+            [RuleType.codeBlock]: {
+              render(node: MarkdownToJSX.CodeBlockNode, output, state) {
+                return (
+                  <CodeBlockRender
+                    key={state?.key}
+                    content={node.text}
+                    lang={node.lang}
+                  />
+                )
               },
-            }}
-            className="prose"
-            as="article"
-          />
-        </main>
+            },
+          }}
+          className="prose"
+          as="article"
+        />
+      </main>
 
-        <ToastContainer />
-      </ThemeProvider>
-    </QueryClientProvider>
-  )
-}
+      <Toaster />
+    </ThemeProvider>
+  </QueryClientProvider>
+)
 
 MarkdownCustomize.meta = {
   title: 'Markdown Customize',

@@ -2,87 +2,52 @@
 
 import 'katex/dist/katex.min.css'
 
-import { useIsomorphicLayoutEffect } from 'foxact/use-isomorphic-layout-effect'
 import type { MarkdownToJSX } from 'markdown-to-jsx'
-import { blockRegex, Priority, simpleInlineRegex } from 'markdown-to-jsx'
-import type { FC } from 'react'
-import { useState } from 'react'
+import { Priority } from 'markdown-to-jsx'
+
+import { KateX } from '../../katex'
+import { blockRegex, simpleInlineRegex } from '../utils/parser'
+
+const INLINE_SKIP_R =
+  '((?:\\[.*?\\][([].*?[)\\]]|<.*?>(?:.*?<.*?>)?|`.*?`|\\\\\\1|[\\s\\S])+?)'
 
 //  $ c = \pm\sqrt{a^2 + b^2} $
-export const KateXRule: MarkdownToJSX.Rule = {
-  match: simpleInlineRegex(
-    /^(?!\\)\$\s*((?:\[(?:[^$]|(?=\\)\$)*?\]|<(?:[^$]|(?=\\)\$)*?>(?:(?:[^$]|(?=\\)\$)*?<(?:[^$]|(?=\\)\$)*?>)?|`(?:[^$]|(?=\\)\$)*?`|[^$]|(?=\\)\$)*?)\s*(?!\\)\$/,
-  ),
-  order: Priority.MED,
+export const KateXRule: MarkdownToJSX.Rule<{
+  katex: string
+}> = {
+  match: simpleInlineRegex(new RegExp(`^(\\$)(${INLINE_SKIP_R})\\1`)),
+  order: Priority.LOW,
   parse(capture) {
     return {
       type: 'kateX',
-      katex: capture[1],
+      katex: capture[2],
     }
   },
-  react(node, output, state) {
-    return <LateX key={state?.key}>{node.katex}</LateX>
+  render(node, output, state) {
+    return <KateX key={state?.key}>{node.katex}</KateX>
   },
 }
-
-type LateXProps = {
-  children: string
-  mode?: string // If `display` the math will be rendered in display mode. Otherwise the math will be rendered in inline mode.
-}
-
-const LateX: FC<LateXProps> = (props) => {
-  const { children, mode } = props
-
-  const [html, setHtml] = useState('')
-
-  const displayMode = mode === 'display'
-
-  const throwOnError = false // render unsupported commands as text instead of throwing a `ParseError`
-
-  useIsomorphicLayoutEffect(() => {
-    let isMounted = true
-    import('katex').then((katex) => {
-      if (!isMounted) return
-      // biome-ignore lint/correctness/noUnsafeOptionalChaining: <explanation>
-      const html = (katex?.default?.renderToString || katex?.renderToString)(
-        children,
-        {
-          displayMode,
-          throwOnError,
-        },
-      )
-
-      setHtml(html)
-    })
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  return (
-    <span
-      dangerouslySetInnerHTML={{ __html: html }}
-      className="katex-container"
-    />
-  )
-}
-
-export const KateXBlockRule: MarkdownToJSX.Rule = {
+export const KateXBlockRule: MarkdownToJSX.Rule<{
+  groups: Record<string, string> | undefined
+}> = {
   match: blockRegex(
     new RegExp(`^\\s*\\$\\$ *(?<content>[\\s\\S]+?)\\s*\\$\\$ *(?:\n *)+\n?`),
   ),
 
-  order: Priority.LOW,
+  order: Priority.MED,
   parse(capture) {
     return {
       type: 'kateXBlock',
       groups: capture.groups,
     }
   },
-  react(node, _, state?) {
+  render(node, _, state?) {
+    if (!node.groups) {
+      return null
+    }
     return (
       <div className="scrollbar-none overflow-auto" key={state?.key}>
-        <LateX mode="display">{node.groups.content}</LateX>
+        <KateX mode="display">{node.groups?.content}</KateX>
       </div>
     )
   },
